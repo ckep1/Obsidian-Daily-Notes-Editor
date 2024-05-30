@@ -36,13 +36,13 @@
     }
 
     function checkDailyNote() {
-        // @ts-ignore
         const currentDate = moment();
         const currentDailyNote = getDailyNote(currentDate, cacheDailyNotes);
 
-        // console.log(currentDate, cacheDailyNotes);
         if (!currentDailyNote) {
             hasCurrentDay = false;
+        } else {
+            hasCurrentDay = true;
         }
     }
 
@@ -116,7 +116,6 @@
         if (fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
     }
 
-
     export function fileDelete(file: TFile) {
         if (!getDateFromFile(file as TFile, 'day')) return;
         renderedDailyNotes = renderedDailyNotes.filter((dailyNote) => {
@@ -183,9 +182,4 @@
         margin-right: auto;
         text-align: center;
     }
-
-    /*.daily-note-view{*/
-    /*    display: flex;*/
-    /*    flex-direction: row;*/
-    /*}*/
 </style>

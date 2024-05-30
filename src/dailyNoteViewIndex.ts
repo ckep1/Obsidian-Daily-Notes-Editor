@@ -4,7 +4,7 @@ import {
     TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, TAbstractFile, Scope, Notice
+    WorkspaceLeaf, TAbstractFile, Scope
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
