@@ -25,17 +25,24 @@
     let hasFetch = false;
     let hasCurrentDay: boolean = true;
 
+    // Load the state of hasCurrentDay from local storage
+    $: hasCurrentDay = JSON.parse(localStorage.getItem('hasCurrentDay') || 'true');
+
     $: if (hasMore && !hasFetch) {
+        fetchNotes();
+    }
+
+    async function fetchNotes() {
         cacheDailyNotes = getAllDailyNotes();
         // Build notes list by date in descending order.
         for (const string of Object.keys(cacheDailyNotes).sort().reverse()) {
             allDailyNotes.push(<TFile>cacheDailyNotes[string]);
         }
         hasFetch = true;
-        checkDailyNote();
+        await checkDailyNote();
     }
 
-    function checkDailyNote() {
+    async function checkDailyNote() {
         const currentDate = moment();
         const currentDailyNote = getDailyNote(currentDate, cacheDailyNotes);
 
@@ -44,11 +51,16 @@
         } else {
             hasCurrentDay = true;
         }
+
+        // Save the state of hasCurrentDay to local storage
+        localStorage.setItem('hasCurrentDay', JSON.stringify(hasCurrentDay));
+        console.log('Checked daily note:', hasCurrentDay);
     }
 
     async function createNewDailyNote() {
         const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
         const currentDate = moment();
+        await checkDailyNote(); // Ensure we check before creating
         if (!hasCurrentDay) {
             const currentDailyNote: any = await createDailyNote(currentDate);
             renderedDailyNotes.push(currentDailyNote);
@@ -57,6 +69,8 @@
                 return parseInt(moment(b.basename, fileFormat).format('x')) - parseInt(moment(a.basename, fileFormat).format('x'));
             });
             hasCurrentDay = true;
+            // Save the state of hasCurrentDay to local storage
+            localStorage.setItem('hasCurrentDay', JSON.stringify(hasCurrentDay));
         }
     }
 
@@ -76,11 +90,11 @@
         renderedDailyNotes = renderedDailyNotes;
     }
 
-    export function check() {
-        checkDailyNote();
+    export async function check() {
+        await checkDailyNote();
     }
 
-    export function fileCreate(file: TFile) {
+    export async function fileCreate(file: TFile) {
         const fileDate = getDateFromFile(file as TFile, 'day');
         const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
         if (!fileDate) return;
@@ -113,10 +127,14 @@
             renderedDailyNotes = sortNotes(renderedDailyNotes);
         }
 
-        if (fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
+        if (fileDate.isSame(moment(), 'day')) {
+            hasCurrentDay = true;
+            // Save the state of hasCurrentDay to local storage
+            localStorage.setItem('hasCurrentDay', JSON.stringify(hasCurrentDay));
+        }
     }
 
-    export function fileDelete(file: TFile) {
+    export async function fileDelete(file: TFile) {
         if (!getDateFromFile(file as TFile, 'day')) return;
         renderedDailyNotes = renderedDailyNotes.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
@@ -124,7 +142,7 @@
         allDailyNotes = allDailyNotes.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
-        checkDailyNote();
+        await checkDailyNote();
     }
 </script>
 
